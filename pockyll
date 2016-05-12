@@ -121,8 +121,10 @@ ref: %s
 
 [%s](%s)
 ''' % (title, timestamp.strftime('%Y-%m-%dT%H:%M:%S%z'), url, title, url)
-    linkfilename = "%s/%s-%s.markdown" % (config.get("linkpost_dir",
-"_drafts/linkposts"), timestamp.strftime('%Y-%m-%d'), item_id)
+    path = config.get("linkpost_dir", "_drafts/linkposts")
+    if not os.path.exists(path):
+        raise RuntimeError("The linkpost destination path %s does not exist. Please double-check spelling and create the destination path if applicable.")
+    linkfilename = "%s/%s-%s.markdown" % (path, timestamp.strftime('%Y-%m-%d'), item_id)
     linkfile = io.open(linkfilename, 'w', encoding='utf8')
     linkfile.write(text)
     linkfile.close()

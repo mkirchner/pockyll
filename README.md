@@ -1,7 +1,8 @@
 # Pockyll
 
-Automated linkpost updates using pocket, IFTTT and Wordpress 
-finally started feeling like death sticks.
+Pockyll is a python tool to create [Jekyll][j] linkposts from your
+[pocket][pocket] collections because automated linkpost updates are like death
+sticks.
 
 > "You wanna buy some death sticks?"<br>
 > "You don't want to sell me death sticks."<br>
@@ -10,13 +11,10 @@ finally started feeling like death sticks.
 > "I want to  go home and rethink my life."<br>
 > - Elan Sleazebaggano & Obi-Wan Kenobi
 
-Pockyll is a python tool to create [Jekyll][j] linkposts from your
-[pocket][pocket] collections.
-
 ## Features
 
-* Pocket item syncing that converts your saved & tagged pocket items
-  into linkposts wich merge seamlessly with standard Jekyll posts
+* Pocket item/bookmark syncing that converts your saved & tagged pocket items
+  into linkposts that merge seamlessly with standard Jekyll posts
 * Linkpost management fully compatible with tools like e.g.
   [octopress][octopress]
 * Incremental update support
@@ -25,24 +23,41 @@ Pockyll is a python tool to create [Jekyll][j] linkposts from your
 
 ## Installation 
 
+### Concept
+Using pockyll to manage [pocket][pocket] bookmarks requires two pieces: the
+`pockyll` executable (which pulls your pocket bookmarks into your Jekyll site)
+and changes to your site setup (in order to enable Jekyll to deal with
+linkposts properly).
+
+### Installing pockyll
+
 ```bash
 $ pip install pockyll
 ```
 
-## Pockyll setup
+### Pockyll setup
 
 1. Login into [pocket][pocket_login], [create a new
   application][pocket_newapp] that has *retrieve* permissions.
 2. Switch into your Jekyll site directory
-3. `pockyll init` to generate a dummy config file `_pockyll.yml`
+3. Generate a a dummy config file `_pockyll.yml`. This can be accomplished
+using
+
+        $ pockyll init
+
 4. In `_pockyll.yml` enter the `pocket_consumer_key` created in step 1. 
    Edit other fields as required.
-5. `pockyll auth` (will open a browser window and ask for pocket authentication)
+5. Authenticate the pockyll app against the pocket API
 
-## Site setup
+        $ pockyll auth 
 
-By default, pockyll will give linkposts the type `reference` and include the 
-target link in the `ref` variable inside the YAML post header:
+   This will open a browser window and ask for pocket authentication.
+
+### Site setup
+
+By default, pockyll will define a variable `type` with the value `reference`
+in every linkpost. It will also and include the target link in the `ref`
+variable inside the YAML post header:
 
 	---
 	title: "Clojure, The Good Parts"
@@ -51,8 +66,11 @@ target link in the `ref` variable inside the YAML post header:
 	ref: https://rasterize.io/blog/clojure-the-good-parts.html
 	---
 
-This allows us to treat normal and linkpost URLs differently, depending on
-the type of the post:
+Writing code that differentiates between normal and linkposts is
+therefore straightforward. You can simply use the post type as an indicator.
+Here is an example for a root directory `index.html` file that inserts the
+link to the post for every normal post bus the link to the reference for every
+linkpost:
 
 ```html
 <div id="home">
@@ -60,11 +78,11 @@ the type of the post:
     {% for post in site.posts %}
       {% if post.type == "reference" %}
       <li><i class="fa-li fa fa-bookmark-o"></i>
-          <a href="{{ post.ref }}">{{ post.title }}</a>
+          <a href="{{ post.ref }}">{{ post.title }}</a> <!-- HERE -->
           <span>{{ post.date | date_to_string }}</span></li>
       {% else %}
       <li><i class="fa-li fa fa-pencil-square"></i>
-          <a href="{{ post.url }}">{{ post.title }}</a>
+          <a href="{{ post.url }}">{{ post.title }}</a> <!-- HERE -->
           <span>{{ post.date | date_to_string }}</span></li>
       {% endif %}
     {% endfor %}
@@ -72,11 +90,13 @@ the type of the post:
 </div>
 ```
 
-For normal posts, the `href` in `index.html` points to `post.url`. If the post is a linkpost, we let the `href` point to `post.ref` to enable direct external links.
+For normal posts, the link points to `post.url`. If the post
+is a linkpost, the link points to `post.ref`, thus enabling direct external
+linking.
 
-## Usage
+## Syncing Jekyll linkposts with Pocket
 
-Once you have your site configured, it is time to sync the items.
+Once you have your site configured, it is time to sync your pocket bookmarks.
 
 1. `pockyll sync` (one-way sync of all new posts tagged with any 
    of `pocket_sync_tags`)
