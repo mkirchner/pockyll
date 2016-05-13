@@ -1,13 +1,14 @@
 from setuptools import setup
 
+from codecs import open
+from os import path
+with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+    long_description = f.read()
+
 setup(
     name = "pockyll",
     description = "sync your pocket bookmarks to Jekyll linkposts",
-
-    # version
-    # third part for minor release
-    # second when api changes
-    # first when it becomes stable someday
+    long_description = long_description,
     version = "0.1.0",
     author = 'Marc Kirchner',
     author_email = "mail@marc-kirchner.de",
@@ -15,11 +16,31 @@ setup(
     url = 'https://github.com/mkirchner/pockyll/',
     license = 'MIT',
 
-    # as a practice no need to hard code version unless you know program wont
-    # work unless the specific versions are used
-    install_requires = ["pocket", ],
 
-    py_modules = ["pockyll", "PyYAML"],
+classifiers=[
+        'Development Status :: 4 - Beta',
+        # Indicate who your project is intended for
+        'Intended Audience :: Developers',
+        'Topic :: Software Development :: Build Tools',
+        # Pick your license as you wish (should match "license" above)
+        'License :: OSI Approved :: MIT License',
+        # Specify the Python versions you support here. In particular, ensure
+        # that you indicate whether you support Python 2, Python 3 or both.
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+    ],
 
-    zip_safe = True,
+    keywords = 'jekyll pocket blog linkpost',
+    install_requires = ["pocket", "PyYAML"],
+    py_modules = ["pockyll"],
+    entry_points={
+        'console_scripts': [
+            'pockyll=pockyll:main',
+        ],
+    },
 )
