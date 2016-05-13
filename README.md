@@ -9,7 +9,7 @@ sticks.
 > "I don't wanna sell you death sticks."<br>
 > "You want to go home an rethink your life."<br>
 > "I want to  go home and rethink my life."<br>
-> - Elan Sleazebaggano & Obi-Wan Kenobi
+> -- Elan Sleazebaggano & Obi-Wan Kenobi
 
 ## Features
 
@@ -31,8 +31,18 @@ linkposts properly).
 
 ### Installing pockyll
 
+Either get the package from PyPi
+
 ```bash
 $ pip install pockyll
+```
+
+or clone the repo and install manually
+
+```bash
+$ git clone https://github.com/mkirchner/pockyll.git
+$ cd pockyll
+$ python setup.py install
 ```
 
 ### Pockyll setup
@@ -69,7 +79,7 @@ variable inside the YAML post header:
 Writing code that differentiates between normal and linkposts is
 therefore straightforward. You can simply use the post type as an indicator.
 Here is an example for a root directory `index.html` file that inserts the
-link to the post for every normal post bus the link to the reference for every
+link to the post for every normal post and the link to the reference for every
 linkpost:
 
 ```html
