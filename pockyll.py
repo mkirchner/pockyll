@@ -194,7 +194,9 @@ def sync(config):
     else:
         print('No new bookmarks. Done.')
 
-def main(argv):
+def main(argv=None):
+    if argv is None:
+        argv = sys.argv
     try:
         # the argument set is so simple that argparse is overkill
         if len(argv) != 2:

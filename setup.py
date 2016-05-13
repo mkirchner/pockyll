@@ -10,7 +10,7 @@ setup(
     name = "pockyll",
     description = "sync your pocket bookmarks to Jekyll linkposts",
     long_description = long_description,
-    version = "0.1.0",
+    version = "0.1.1",
     author = 'Marc Kirchner',
     author_email = "mail@marc-kirchner.de",
 
