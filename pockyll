@@ -1,10 +1,16 @@
 #!/usr/bin/env python
-
-import os, io, sys
+'''
+Pockyll - generate Jekyll linkposts from pocket items
+'''
+from __future__ import print_function
+import os
+import io
+import sys
 import datetime
 import webbrowser
 import yaml
 from pocket import Pocket
+
 
 def usage():
     usage_text = '''
@@ -21,22 +27,25 @@ def usage():
     '''
     print(usage_text)
 
+
 def get_config_filename():
     return os.getcwd() + '/_pockyll.yml'
+
 
 def create_config():
     '''
     Creates a `_pockyll.yml` with default values in the current working
-    directory. 
+    directory.
     '''
     default_config = {
-        'pocket_consumer_key': None, 
-        'pocket_redirect_uri': None, 
+        'pocket_consumer_key': None,
+        'pocket_redirect_uri': None,
         'pocket_access_token': None,
         'pocket_sync_tags': ['blog'],
         'pocket_since': None,
-        'linkpost_dir': '_posts/linkposts' }
+        'linkpost_dir': '_posts/linkposts'}
     save_config(default_config)
+
 
 def save_config(config, filename=get_config_filename()):
     '''
@@ -46,15 +55,23 @@ def save_config(config, filename=get_config_filename()):
     yaml.dump(config, configfile)
     configfile.close()
 
+
 def load_config(filename=get_config_filename()):
     '''
     Loads the the configuration from a YAML file and returns
     a the configuration as a ``dict`` object.
     '''
-    configfile = io.open(filename, 'r', encoding='utf8')
-    config = yaml.load(configfile)
-    configfile.close()
+    try:
+        configfile = io.open(filename, 'r', encoding='utf8')
+        config = yaml.load(configfile)
+        configfile.close()
+    except IOError as e:
+        raise RuntimeError('Could not open the configuration file %s. '
+                           'Are you in the correct directory and/or did you '
+                           'run `pockyll init` prior to the current '
+                           'command?' % filename)
     return config
+
 
 def auth(config):
     '''
@@ -69,9 +86,11 @@ def auth(config):
     pocket_consumer_key = config.get('pocket_consumer_key', None)
     pocket_redirect_uri = config.get('pocket_redirect_uri', None)
     if pocket_consumer_key is None or pocket_redirect_uri is None:
-        raise RuntimeError("You need to provide pocket_consumer_key and pocket_redirect_uri in the pockyll configuration file.")
+        raise RuntimeError(
+            "You need to provide pocket_consumer_key and pocket_redirect_uri "
+            "in the pockyll configuration file.")
     request_token = Pocket.get_request_token(
-        consumer_key=pocket_consumer_key, 
+        consumer_key=pocket_consumer_key,
         redirect_uri=pocket_redirect_uri)
     auth_url = Pocket.get_auth_url(
         code=request_token,
@@ -81,7 +100,7 @@ def auth(config):
     print('Please continue authentication in your browser.')
     print('When finished, press ENTER.')
     # Open web browser tab to authenticate with Pocket
-    webbrowser.open(auth_url) # this also works in a text shell
+    webbrowser.open(auth_url)  # this also works in a text shell
     # Wait for user to hit ENTER before proceeding
     raw_input()
     access_token = Pocket.get_access_token(
@@ -91,6 +110,7 @@ def auth(config):
     config['pocket_access_token'] = access_token
     save_config(config)
     return config
+
 
 def get_list(config):
     '''
@@ -102,15 +122,17 @@ def get_list(config):
                       config.get('pocket_access_token'))
     tags = config.get('pocket_sync_tags', 'all')
     since = config.get('pocket_since', None)
-    items_list = instance.get(state='all', 
+    items_list = instance.get(state='all',
                               tag=tags,
                               sort='newest',
                               since=since,
                               detailType='simple')
     return items_list
 
+
 def create_linkpost(config, item_id, title, url, timestamp):
-    #text = '---\ntitle: "%s"\ndate: %s\ntype: "reference"\nref: %s\n---\n' % (title, timestamp.strftime('%Y-%m-%dT%H:%M:%S%z'), url)
+    # text = '---\ntitle: "%s"\ndate: %s\ntype: "reference"\nref: %s\n---\n' %
+    # (title, timestamp.strftime('%Y-%m-%dT%H:%M:%S%z'), url)
     text = '''
 ---
 title: "%s"
@@ -123,12 +145,17 @@ ref: %s
 ''' % (title, timestamp.strftime('%Y-%m-%dT%H:%M:%S%z'), url, title, url)
     path = config.get("linkpost_dir", "_drafts/linkposts")
     if not os.path.exists(path):
-        raise RuntimeError("The linkpost destination path %s does not exist. Please double-check spelling and create the destination path if applicable.")
-    linkfilename = "%s/%s-%s.markdown" % (path, timestamp.strftime('%Y-%m-%d'), item_id)
+        raise RuntimeError(
+            "The linkpost destination path %s does not exist. Please "
+            "double-check spelling and create the destination path if "
+            "applicable.")
+    linkfilename = "%s/%s-%s.markdown" % (
+        path, timestamp.strftime('%Y-%m-%d'), item_id)
     linkfile = io.open(linkfilename, 'w', encoding='utf8')
     linkfile.write(text)
     linkfile.close()
-    
+
+
 def sync(config):
     print('Requesting new items from Pocket API...')
     if config.get('pocket_access_token', None) is None:
@@ -145,8 +172,9 @@ def sync(config):
             url = item.get('resolved_url', None)
             tmp = item.get('time_added', None)
             timestamp = None
-            if tmp is not None: 
-                timestamp = datetime.datetime.fromtimestamp(long(item['time_added']))
+            if tmp is not None:
+                timestamp = datetime.datetime.fromtimestamp(
+                    long(item['time_added']))
             else:
                 timestamp = datetime.datetime.now()
             item_id = item.get('resolved_id', None)
@@ -165,6 +193,7 @@ def sync(config):
         print('Done (skipped %d).' % skipped)
     else:
         print('No new bookmarks. Done.')
+
 
 def main(argv):
     # the argument set is so simple that argparse is overkill
@@ -186,7 +215,7 @@ if __name__ == '__main__':
     try:
         main(sys.argv)
     except Exception as e:
-        print('ERROR: %s' % e.message)
+        print('ERROR: %s' % e.message, file=sys.stderr)
         usage()
         exit(1)
     exit(0)
