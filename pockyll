@@ -194,28 +194,27 @@ def sync(config):
     else:
         print('No new bookmarks. Done.')
 
-
 def main(argv):
-    # the argument set is so simple that argparse is overkill
-    if len(argv) != 2:
-        raise RuntimeError('Wrong number of arguments.')
-    command = argv[1]
-    if command == 'init':
-        create_config()
-    elif command == 'auth':
-        auth(load_config())
-    elif command == 'sync':
-        sync(load_config())
-    elif command in ['-h', '--help']:
-        usage()
-    else:
-        raise RuntimeError('Invalid command')
-
-if __name__ == '__main__':
     try:
-        main(sys.argv)
+        # the argument set is so simple that argparse is overkill
+        if len(argv) != 2:
+            raise RuntimeError('Wrong number of arguments.')
+        command = argv[1]
+        if command == 'init':
+            create_config()
+        elif command == 'auth':
+            auth(load_config())
+        elif command == 'sync':
+            sync(load_config())
+        elif command in ['-h', '--help']:
+            usage()
+        else:
+            raise RuntimeError('Invalid command')
     except Exception as e:
         print('ERROR: %s' % e.message, file=sys.stderr)
         usage()
         exit(1)
+
+if __name__ == '__main__':
+    main(sys.argv)
     exit(0)
