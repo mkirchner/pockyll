@@ -130,11 +130,25 @@ def get_list(config):
     return items_list
 
 
-def create_linkpost(config, item_id, title, url, timestamp):
-    # text = '---\ntitle: "%s"\ndate: %s\ntype: "reference"\nref: %s\n---\n' %
-    # (title, timestamp.strftime('%Y-%m-%dT%H:%M:%S%z'), url)
-    text = '''
----
+def create_linkpost(config, item_id, title, url, timestamp, is_draft=True):
+    path = ''
+    if is_draft:
+        path = config.get("linkpost_post_dir", "_posts/linkposts")
+    else:
+        path = config.get("linkpost_draft_dir", "_drafts/linkposts")
+    if not os.path.exists(path):
+        raise RuntimeError(
+            "The linkpost destination path %s does not exist. Please "
+            "double-check spelling and create the destination path if "
+            "applicable." % path)
+    linkfilename = "%s/%s-%s.markdown" % (
+        path, timestamp.strftime('%Y-%m-%d'), item_id)
+    # skip if file exists
+    if os.path.exists(linkfilename):
+        raise IOError('Doggedly refusing to overwrite existing file: %s' %
+                linkfilename)
+    linkfile = io.open(linkfilename, 'w', encoding='utf8')
+    text = '''---
 title: "%s"
 date: %s
 type: "reference"
@@ -143,15 +157,6 @@ ref: %s
 
 [%s](%s)
 ''' % (title, timestamp.strftime('%Y-%m-%dT%H:%M:%S%z'), url, title, url)
-    path = config.get("linkpost_dir", "_drafts/linkposts")
-    if not os.path.exists(path):
-        raise RuntimeError(
-            "The linkpost destination path %s does not exist. Please "
-            "double-check spelling and create the destination path if "
-            "applicable.")
-    linkfilename = "%s/%s-%s.markdown" % (
-        path, timestamp.strftime('%Y-%m-%d'), item_id)
-    linkfile = io.open(linkfilename, 'w', encoding='utf8')
     linkfile.write(text)
     linkfile.close()
 
@@ -169,11 +174,11 @@ def sync(config):
         needs_fixing = 0
         for key, item in bookmarks.items():
             title = item.get('resolved_title', None)
-            url = item.get('resolved_url', None)
+            url = item.get('given_url', None)
             tmp = item.get('time_added', None)
             timestamp = None
             if tmp is not None:
-                timestamp = datetime.datetime.fromtimestamp(
+                timestamp = datetime.datetime.utcfromtimestamp(
                     long(item['time_added']))
             else:
                 timestamp = datetime.datetime.now()
@@ -183,7 +188,10 @@ def sync(config):
                 print("FIXME: %s" % str([title, url, item_id]))
                 needs_fixing = needs_fixing + 1
             if all([title, url, item_id]):
-                create_linkpost(config, item_id, title, url, timestamp)
+                try:
+                    create_linkpost(config, item_id, title, url, timestamp)
+                except IOError as e:
+                    print("Skipping: %s" % e.message)
             else:
                 print("Skipping: %s" % str([title, url, item_id]))
                 skipped = skipped + 1
