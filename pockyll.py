@@ -147,7 +147,7 @@ def create_linkpost(config, item_id, title, url, timestamp, is_draft=True):
     # skip if file exists
     if os.path.exists(linkfilename):
         raise IOError('Doggedly refusing to overwrite existing file: %s' %
-                linkfilename)
+                      linkfilename)
     linkfile = io.open(linkfilename, 'w', encoding='utf8')
     text = '''---
 title: '%s'
@@ -167,15 +167,31 @@ def sync(config):
     if config.get('pocket_access_token', None) is None:
         raise RuntimeError("Please authenticate the app before syncing.")
     response = get_list(config)
-    bookmarks = response[0]['list']
     # [0] is the result, [1] is the HTTP return conde and headers
-    if len(bookmarks) > 0:
-        print('Syncing %d items.' % len(bookmarks))
-        skipped = 0
-        needs_fixing = 0
+    bookmarks = response[0]['list']
+    n_items = len(bookmarks)
+    if n_items > 0:
+        print('Syncing %d items.' % n_items)
+        n_skipped = 0
+        n_drafts = 0
+        # pull relevant info from the API response
+        # TODO: support tags
         for key, item in bookmarks.items():
-            title = item.get('resolved_title', None)
+            # make sure we have an URL and and item ID
             url = item.get('given_url', None)
+            item_id = item.get('resolved_id', None)
+            if not all([url, item_id]):
+                print('Skipping incomplete item: %s' % str([item_id, url]))
+                n_skipped = n_skipped + 1
+                continue
+            # pull the remaining data
+            # check if we have a proper title
+            title = item.get('resolved_title', None)
+            is_draft = False
+            if title in [None, '']:
+                is_draft = True
+                n_drafts = n_drafts + 1
+            # supply a current timestamp, if necessary
             tmp = item.get('time_added', None)
             timestamp = None
             if tmp is not None:
@@ -183,26 +199,24 @@ def sync(config):
                     long(item['time_added']))
             else:
                 timestamp = datetime.datetime.now()
-            item_id = item.get('resolved_id', None)
-            if title is None or title == '':
-                title = 'FIXME'
-                print("FIXME: %s" % str([title, url, item_id]))
-                needs_fixing = needs_fixing + 1
-            if all([title, url, item_id]):
-                try:
-                    print("Linking: %s" % str([title, url, item_id]))
-                    create_linkpost(config, item_id, title, url, timestamp)
-                except IOError as e:
-                    print("Skipping: %s" % e.message)
-            else:
-                print("Skipping: %s" % str([title, url, item_id]))
-                skipped = skipped + 1
+            # create the linkpost
+            try:
+                msg = "Linking to POSTs:  %s" % str([title, url, item_id])
+                if is_draft:
+                    msg = "Linking to DRAFTs: %s" % str([title, url, item_id])
+                create_linkpost(config, item_id, title,
+                                url, timestamp, is_draft)
+                print(msg)
+            except IOError as e:
+                print("Skipping: %s" % e.message)
         # update timestamp
         config['pocket_since'] = response[0]['since']
         save_config(config)
-        print('Done (skipped %d).' % skipped)
+        print('Done (%d posts/%d drafts/%d skipped).' %
+              (n_items - n_drafts - n_skipped, n_drafts, n_skipped))
     else:
         print('No new bookmarks. Done.')
+
 
 def main(argv=None):
     if argv is None:
