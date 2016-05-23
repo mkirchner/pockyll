@@ -133,7 +133,7 @@ def get_list(config):
 
 def create_linkpost(config, item_id, title, url, timestamp, is_draft=True):
     path = ''
-    if is_draft:
+    if not is_draft:
         path = config.get("linkpost_post_dir", "_posts/linkposts")
     else:
         path = config.get("linkpost_draft_dir", "_drafts/linkposts")
