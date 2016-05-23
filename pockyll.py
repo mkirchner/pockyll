@@ -43,7 +43,8 @@ def create_config():
         'pocket_access_token': None,
         'pocket_sync_tags': ['blog'],
         'pocket_since': None,
-        'linkpost_dir': '_posts/linkposts'}
+        'linkpost_post_dir': '_posts/linkposts',
+        'linkpost_draft_dir': '_drafts/linkposts'}
     save_config(default_config)
 
 
@@ -149,9 +150,9 @@ def create_linkpost(config, item_id, title, url, timestamp, is_draft=True):
                 linkfilename)
     linkfile = io.open(linkfilename, 'w', encoding='utf8')
     text = '''---
-title: "%s"
+title: '%s'
 date: %s
-type: "reference"
+type: 'reference'
 ref: %s
 ---
 
@@ -189,6 +190,7 @@ def sync(config):
                 needs_fixing = needs_fixing + 1
             if all([title, url, item_id]):
                 try:
+                    print("Linking: %s" % str([title, url, item_id]))
                     create_linkpost(config, item_id, title, url, timestamp)
                 except IOError as e:
                     print("Skipping: %s" % e.message)
