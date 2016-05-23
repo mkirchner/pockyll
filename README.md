@@ -70,9 +70,9 @@ in every linkpost. It will also and include the target link in the `ref`
 variable inside the YAML post header:
 
 	---
-	title: "Clojure, The Good Parts"
+	title: 'Clojure, The Good Parts'
 	date: 2016-04-19T23:05:26
-	type: "reference"
+	type: 'reference'
 	ref: https://rasterize.io/blog/clojure-the-good-parts.html
 	---
 
@@ -118,25 +118,22 @@ Once you have your site configured, it is time to sync your pocket bookmarks.
 
 ```
 mk@kowalski:~/src/mysite$ pockyll sync
+
 Requesting new items from Pocket API...
-Syncing 164 items.
-FIXME: ['FIXME', u'http://insighthealthdata.com/blog/HealthyBeats/index.html', u'1227075798']
-FIXME: ['FIXME', u'http://ahmetalpbalkan.com/blog/8-months-microsoft/', u'374320379']
-FIXME: ['FIXME', None, u'0']
-Skipping: ['FIXME', None, u'0']
-FIXME: ['FIXME', u'https://www.linkedin.com/pulse/agile-dead-matthew-kern', u'1264106151']
-FIXME: ['FIXME', u'http://pjreddie.com/darknet/', u'1152066420']
-FIXME: ['FIXME', u'https://www.chrisstucchio.com/blog/2013/bayesian_bandit.html', u'393364879']
-Done (skipped 1).
+Syncing 2 items.
+Linking to POSTs:  [u'3 Reasons AWS Lambda Is Not Ready for ...', u'https://www.datawire.io/...', u'129676xxxx']
+Linking to POSTs:  [u'Build a Python Microservice with ...', u'http://www.giantflyingsaucer.com/...', u'116281xxxx']
+Done (2 posts/0 drafts/0 skipped).
+
 mk@kowalski:~/src/mysite$
 ```
 
-This is an example of an initial sync of a jekyll site against pocket (hence
-the number of items).  Pockyll automatically 'fixes' missing titles but skips
-items that lack a URI or an ID. I would now change into the `linkpost_dir`,
-grep all files for the `title: "FIXME"` string and start editing, e.g.:
-
-        vim `grep -l 'title: "FIXME"' *`
+Pockyll automatically detects items that lack a title, an URI or an ID. If ID
+or URI are not present, pockyll skips the item. It the item lacks a title,
+pockyll will assign an empty string and place the item into the
+`linkpost_draft_dir` folder (defaults to `_drafts/linkposts/`) where you can
+review the link and edit the title. This allows for a more robust and seamless
+sync/deploy workflow.
 
 
 ## Customization
@@ -156,8 +153,11 @@ pocket_access_token: ***secret***
 pocket_redirect_uri: 'https://getpocket.com/a/'
 pocket_sync_tags: ['blog']
 pocket_since: 12326342
-linkpost_dir: '_posts/linkposts'
+linkpost_post_dir: '_posts/linkposts'
+linkpost_draft_dir: '_drafts/linkposts'
 ```
+You must make sure that all directories mentioned in the configuration file (a)
+exist; and (b) are writeable.
 
 ### Options
 
@@ -172,13 +172,16 @@ linkpost_dir: '_posts/linkposts'
   Jekyll.
 - `pocket_since`: pocket timestamp that marks the last sync.
   Automatically updated by pockyll.
-- `linkpost_dir`: the directory where linkposts should be synced
-  to. Change this to e.g. `_drafts/linkposts` if you want to review changes
-  before publication. In that case use 
+- `linkpost_post_dir`: the directory where linkposts are synced
+  to unless they meet some error condition (currently: lacking a title). If you
+  want to review your linkposts before publishing, set this to a `_draft`
+  directory (may be the same as `linkpost_draft_dir`).
+- `linkpost_draft_dir`: the directory where incomplete linkposts are synced
+  to for review.
 
 ## License
 
-Vanilla [MIT](https://github.com/mkirchner/pockyll/blob/master/LICENSE).
+[MIT](https://github.com/mkirchner/pockyll/blob/master/LICENSE).
 
 ## Contact
 Feel free to open issues if you run into trouble or have suggestions. Pull
